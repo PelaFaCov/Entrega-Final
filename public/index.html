@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Productos</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <h1>📦 Lista de Productos</h1>
+    <label for="ordenSelect">Ordenar por:</label>
+<select id="ordenSelect">
+  <option value="precioDesc">Precio: Mayor a Menor</option>
+  <option value="precioAsc">Precio: Menor a Mayor</option>
+  <option value="nombreAZ">Nombre: A → Z</option>
+  <option value="nombreZA">Nombre: Z → A</option>
+</select>
+<button id="ordenarBtn">Filtrar</button>
+    <table id="tablaProductos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+<script>
+  let productosGlobal = [];
+  function renderTabla(productos) {
+    const cuerpoTabla = document.querySelector("#tablaProductos tbody");
+    cuerpoTabla.innerHTML = '';
+    productos.forEach(producto => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${producto.id}</td>
+        <td>${producto.nombre}</td>
+        <td>$${producto.precio}</td>
+      `;
+      cuerpoTabla.appendChild(fila);
+    });
+  }
+  function ordenarProductos(criterio) {
+    const copia = [...productosGlobal]; // No mutamos el original
+    switch (criterio) {
+      case 'precioAsc':
+        return copia.sort((a, b) => a.precio - b.precio);
+      case 'precioDesc':
+        return copia.sort((a, b) => b.precio - a.precio);
+      case 'nombreAZ':
+        return copia.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      case 'nombreZA':
+        return copia.sort((a, b) => b.nombre.localeCompare(a.nombre));
+      default:
+        return copia;
+    }
+  }
+
+  fetch('/productos')
+    .then(res => res.json())
+    .then(data => {
+      productosGlobal = data;
+      renderTabla(productosGlobal);
+    })
+    .catch(error => {
+      const cuerpoTabla = document.querySelector("#tablaProductos tbody");
+      cuerpoTabla.innerHTML = `<tr><td colspan="3">⚠️ Error al cargar productos.</td></tr>`;
+      console.error("Error al obtener productos:", error);
+    });
+
+  document.getElementById("ordenarBtn").addEventListener("click", () => {
+    const criterio = document.getElementById("ordenSelect").value;
+    const ordenado = ordenarProductos(criterio);
+    renderTabla(ordenado);
+  });
+</script>
+
+</body>
+</html>
